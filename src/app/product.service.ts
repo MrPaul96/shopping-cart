@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap } from 'rxjs';
 import { IProduct, IProductResponse } from './product.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
-  private productsInCart: IProduct[] = [];
+  private productsInCartSubject: BehaviorSubject<IProduct[]> = new BehaviorSubject<IProduct[]>([]);
+  productsInCart$: Observable<IProduct[]> = this.productsInCartSubject.asObservable();
 
   constructor(private httpClient: HttpClient) {}
 
@@ -17,15 +18,28 @@ export class ProductService {
       .pipe(map((response) => response.products));
   }
 
-  getProductsFromCart() {
-    return [...this.productsInCart];
+  getTotalAmount(products: IProduct[]): number {
+    return products.reduce((sum: number, currentProduct: IProduct) => currentProduct.price + sum, 0);
+  }
+
+  setProductsInCart(products: IProduct[]) {
+    this.productsInCartSubject.next(products);
+  }
+
+  getCurrentProductsInCart() {
+    return this.productsInCartSubject.getValue();
   }
 
   addProductToCart(product: IProduct): void {
-    this.productsInCart = [...this.productsInCart, product];
+    product = { ...product, inCart: true };
+    const currentProductsInCart = this.getCurrentProductsInCart();
+    const updatedProducts = [...currentProductsInCart, product];
+    this.setProductsInCart(updatedProducts);
   }
 
   removeProductFromCart(id: string): void {
-    this.productsInCart = this.productsInCart.filter((product: IProduct) => product.id !== id);
+    const currentProductsInCart = this.getCurrentProductsInCart();
+    const productsInCart  = currentProductsInCart.filter((product: IProduct) => product.id !== id);
+    this.setProductsInCart(productsInCart);
   }
 }

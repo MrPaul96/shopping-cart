@@ -1,9 +1,18 @@
 
-<div class="shopping-cart">
+<section class="shopping-cart">
     <img class="shopping-cart__icon" src="../assets/shopping-cart-yellow.png" (click)="openCart()">
     <div class="shopping-cart__count">
-        0
+        {{ (productsInCart$ | async )?.length }}
     </div>
     <div class="shopping-cart__list" *ngIf="isCartOpened">
+        <div class="cart-row" *ngFor="let product of (productsInCart$ | async)">
+            <span class="cart-row__name"> {{ product?.name }} </span>
+            <img class="cart-row__img" [src]="product.image">
+            <span class="cart-row__name"> {{ product?.price | currency }} </span>
+            <img class="cart-row__remove" src="../assets/trash-red.png" (click)="removeProduct(product)">
+        </div>
+        <div class="shopping-total">
+            <label class="shopping-total__text"> <b>Total</b> {{ totalAmount | currency }}</label>
+        </div>
     </div>
-</div>
+</section>
